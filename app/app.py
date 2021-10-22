@@ -78,7 +78,3 @@ def get_image():
         pdf.image(imageFile, 0, 0, width, height)
     pdf.output(os.path.join(base_path, 'final.pdf'), "F")
     return ''
-
-
-if __name__ == '__main__':
-    app.run(port=8081, debug=True)
