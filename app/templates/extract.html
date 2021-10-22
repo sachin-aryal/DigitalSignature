@@ -20,6 +20,31 @@
             top: 90%;
             left: 5%;
         }
+        .loader {
+            border-radius: 50%;
+            border: 16px solid blue;
+            border-right-color: green;
+            border-bottom-color: red;
+            border-left-color: pink;
+            width: 120px;
+            height: 120px;
+            -webkit-animation: spin 2s linear infinite;
+            animation: spin 2s linear infinite;
+            margin: 0 auto;
+        }
+
+        @-webkit-keyframes spin {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .download{
+            display: none;
+        }
     </style>
     <script type="text/javascript">
         $(function(){
@@ -61,6 +86,8 @@
         }
 
         function completeProcess(required_image, request_id){
+            $('.loader').show();
+            $('.process-button').attr('disabled', true)
             html2canvas(document.querySelector("#drawing")).then(canvas => {
                 $.ajax({
                     type: "POST",
@@ -70,8 +97,11 @@
                         required_image: required_image,
                         request_id: request_id
                     }
-                }).done(function() {
-                    console.log('sent');
+                }).done(function(data) {
+                    $(".source-div").remove()
+                    console.log(data);
+                    $(".download").show();
+                    $("#download-button").attr("href", "/download/"+data)
                 });
             });
         }
@@ -81,12 +111,18 @@
 <body>
 <div class="container">
     <div class="row">
-        <div class="offset-3 col-md-6">
+        <div class="offset-3 col-md-6 source-div">
             <div id="drawing">
                 <img class="target-image" src="{{url_for('static', filename=required_image)}}" />
                 <img id="signature-image" class="signature-image" src="{{ url_for('static', filename='signature.png') }}"/>
             </div>
-            <button onclick="completeProcess('{{ required_image }}', '{{ request_id }}')" class="btn btn-info">Process</button>
+            <button onclick="completeProcess('{{ required_image }}', '{{ request_id }}')" class="btn btn-info process-button">Process</button>
+            <div class="loader" style="display: none"></div>
+        </div>
+        <div class="offset-5 col-md-6" style="margin-top: 20%">
+            <div class="download">
+                <a href="" target="_blank" id="download-button" class="btn btn-primary">Download</a>
+            </div>
         </div>
     </div>
 </div>

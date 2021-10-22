@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request
+from flask import Flask, render_template, redirect, request, send_file
 from pdf2image import convert_from_path
 from PIL import Image
 from fpdf import FPDF
@@ -30,7 +30,7 @@ def extract():
         return redirect(request.url)
     uploaded_file = request.files['source_file']
     request_id = str(uuid.uuid4())
-    base_path = os.path.join('static', 'uploads', request_id)
+    base_path = os.path.join('app', 'static', 'uploads', request_id)
     os.mkdir(base_path)
     pdf_file = os.path.join(base_path, uploaded_file.filename)
     uploaded_file.save(pdf_file)
@@ -49,12 +49,12 @@ def get_image():
     image_b64 = request.values['imageBase64']
     image_data = re.sub('^data:image/.+;base64,', '', image_b64)
     img_data = base64.b64decode(image_data)
-    required_image = os.path.join('static', request.values['required_image'])
+    required_image = os.path.join('app', 'static', request.values['required_image'])
     with open(required_image, 'wb') as f:
         f.write(img_data)
     pdf = FPDF()
     request_id = request.values['request_id']
-    base_path = os.path.join('static', 'uploads', request_id)
+    base_path = os.path.join('app', 'static', 'uploads', request_id)
     images = glob.glob(os.path.join(base_path, "*.png"))
     images = sorted(images)
     for imageFile in images:
@@ -77,4 +77,10 @@ def get_image():
 
         pdf.image(imageFile, 0, 0, width, height)
     pdf.output(os.path.join(base_path, 'final.pdf'), "F")
-    return ''
+    return request_id
+
+
+@app.route('/download/<path:request_id>', methods=['GET'])
+def download(request_id):
+    filename = os.path.join('static', 'uploads', request_id, 'final.pdf')
+    return send_file(filename, as_attachment=True)
